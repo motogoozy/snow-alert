@@ -1,0 +1,16 @@
+{
+  "name": "weather-alert",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Kyle Payne",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "nodemailer": "^6.4.0"
+  }
+}
