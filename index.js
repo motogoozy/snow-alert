@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('./config.json'));
 
-const checkInterval = 6; //hours
+const checkInterval = 24; //hours
 const milliseconds = checkInterval * 60 * 60 * 1000;
 
 const getWeather = () => {
@@ -64,7 +64,7 @@ const getWeather = () => {
 			}
 		});
 	
-		if (snowPredicted && snowDepth > 0) {
+		if (snowPredicted && snowDepth >= 1) {
 			snowDepth = snowDepth.toFixed(2);
 			let message = `Forecast: Snow expected to start around ${firstTime} ${firstAmOrPm} on ${firstDay} and will continue until around ${lastTime} ${lastAmOrPm} on ${lastDay}. Total expected snowfall is ${snowDepth} inches`;
 			
@@ -109,10 +109,12 @@ const sendAlert = (message) => {
 }
 
 console.log('Started Weather Alert service...');
-console.log('Fetching weather forecast...');
-getWeather().then(res => {
-	console.log(res);
-})
+
+// Run once on startup
+// console.log('Fetching weather forecast...');
+// getWeather().then(res => {
+// 	console.log(res);
+// })
 
 // checks weather forecast every 12 hours
 setInterval(async () => {
