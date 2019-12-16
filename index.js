@@ -64,14 +64,18 @@ const getWeather = () => {
 			}
 		});
 	
-		if (snowPredicted && snowDepth >= 1) {
+		if (snowPredicted && snowDepth >= 0.5) {
 			snowDepth = snowDepth.toFixed(2);
 			let message = `Forecast: Snow expected to start around ${firstTime} ${firstAmOrPm} on ${firstDay} and will continue until around ${lastTime} ${lastAmOrPm} on ${lastDay}. Total expected snowfall is ${snowDepth} inches`;
 			
 			console.log('Snow forecasted. Sending alert to recipients...')
 			let alertStatus = await sendAlert(message);
 			console.log(alertStatus);
+		}  else if (snowPredicted && snowDepth < 0.5) {
+			console.log('---')
+			console.log('Less than a half inch of snow predicted.')
 		} else {
+			console.log('---')
 			console.log('No snow predicted');
 		}
 		resolve('Snow monitoring is active...');
