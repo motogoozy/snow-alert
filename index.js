@@ -71,9 +71,9 @@ const getWeather = () => {
 			console.log('Snow forecasted. Sending alert to recipients...')
 			let alertStatus = await sendAlert(message);
 			console.log(alertStatus);
-		}  else if (snowPredicted && snowDepth < 0.5) {
+		} else if (snowPredicted && snowDepth < 0.5) {
 			console.log('---')
-			console.log('Less than a half inch of snow predicted.')
+			console.log('Less than a half inch of snow predicted.');
 		} else {
 			console.log('---')
 			console.log('No snow predicted');
