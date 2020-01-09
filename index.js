@@ -74,6 +74,7 @@ const getWeather = () => {
 		} else {
 			console.log('No snow predicted');
 		}
+		console.log('---');
 		resolve('Snow monitoring is active...');
 	})
 };
