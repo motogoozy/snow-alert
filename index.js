@@ -123,14 +123,14 @@ const run = async () => {
 	// Runs once on startup
 	log('Started Weather Alert service...');
 	let now = new Date();
-	log(now.toDateString(), now.toLocaleTimeString()); // Human readable date & time
+	log(`${now.toDateString()} ${now.toLocaleTimeString()}`); // Human readable date & time
 	log('Fetching weather forecast...');
 	await getWeather();
 
 	// runs at every interval set above in checkInterval variable (converted to milliseconds)
 	setInterval(async () => {
 		now = new Date();
-		log(now.toDateString(), now.toLocaleTimeString());
+		log(`${now.toDateString()} ${now.toLocaleTimeString()}`);
 		log('Fetching weather forecast...');
 		await getWeather();
 	}, milliseconds);
