@@ -3,8 +3,15 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('./config.json'));
 
+const logFile = fs.createWriteStream('log.txt', { flags: 'a' });
+
 const checkInterval = 24; //hours
 const milliseconds = checkInterval * 60 * 60 * 1000;
+
+const log = (text) => {
+	logFile.write(text + '\n');
+	console.log(text);
+};
 
 const getWeather = () => {
 	return new Promise(async (resolve, reject) => {
@@ -68,15 +75,16 @@ const getWeather = () => {
 			snowDepth = snowDepth.toFixed(2);
 			let message = `Forecast: Snow expected to start around ${firstTime} ${firstAmOrPm} on ${firstDay} and will continue until around ${lastTime} ${lastAmOrPm} on ${lastDay}. Total expected snowfall is ${snowDepth} inches`;
 			
-			console.log('Snow forecasted. Sending alert to recipients...')
+			log('Snow forecasted. Sending alert to recipients...')
 			let alertStatus = await sendAlert(message);
-			console.log(alertStatus);
+			log(alertStatus);
 		} else if (snowPredicted && snowDepth < 1) {
-			console.log('Less than one inch of snow predicted');
+			log('Less than one inch of snow predicted');
 		} else {
-			console.log('No snow predicted');
+			log('No snow predicted');
 		}
-		console.log('---');
+		log('---');
+		logFile.write('\n');
 		resolve();
 	})
 };
@@ -105,7 +113,7 @@ const sendAlert = (message) => {
 			if (error) {
 				reject(error);
 			}
-			// console.log(info);
+			// log(info);
 			resolve('Message(s) sent successfully.');
 		});
 	})
@@ -113,17 +121,17 @@ const sendAlert = (message) => {
 
 const run = async () => {
 	// Runs once on startup
-	console.log('Started Weather Alert service...');
+	log('Started Weather Alert service...');
 	let now = new Date();
-	console.log(now.toDateString(), now.toLocaleTimeString()); // Human readable date & time
-	console.log('Fetching weather forecast...');
+	log(now.toDateString(), now.toLocaleTimeString()); // Human readable date & time
+	log('Fetching weather forecast...');
 	await getWeather();
 
 	// runs at every interval set above in checkInterval variable (converted to milliseconds)
 	setInterval(async () => {
 		now = new Date();
-		console.log(now.toDateString(), now.toLocaleTimeString());
-		console.log('Fetching weather forecast...');
+		log(now.toDateString(), now.toLocaleTimeString());
+		log('Fetching weather forecast...');
 		await getWeather();
 	}, milliseconds);
 }
