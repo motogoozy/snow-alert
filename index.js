@@ -63,7 +63,7 @@ const getWeather = () => {
 				snowDepth = depth;
 			}
 		});
-	
+
 		if (snowPredicted && snowDepth >= 1) {
 			snowDepth = snowDepth.toFixed(2);
 			let message = `Forecast: Snow expected to start around ${firstTime} ${firstAmOrPm} on ${firstDay} and will continue until around ${lastTime} ${lastAmOrPm} on ${lastDay}. Total expected snowfall is ${snowDepth} inches`;
@@ -71,11 +71,13 @@ const getWeather = () => {
 			console.log('Snow forecasted. Sending alert to recipients...')
 			let alertStatus = await sendAlert(message);
 			console.log(alertStatus);
+		} else if (snowPredicted && snowDepth < 1) {
+			console.log('Less than one inch of snow predicted');
 		} else {
 			console.log('No snow predicted');
 		}
 		console.log('---');
-		resolve('Snow monitoring is active...');
+		resolve();
 	})
 };
 
@@ -109,17 +111,21 @@ const sendAlert = (message) => {
 	})
 }
 
-console.log('Started Weather Alert service...');
-
-// Run once on startup
-console.log('Fetching weather forecast...');
-getWeather().then(res => {
-	console.log(res);
-})
-
-// checks weather forecast in interval set above in checkInterval variable (converted to milliseconds)
-setInterval(async () => {
+const run = async () => {
+	// Runs once on startup
+	console.log('Started Weather Alert service...');
+	let now = new Date();
+	console.log(now.toDateString(), now.toLocaleTimeString()); // Human readable date & time
 	console.log('Fetching weather forecast...');
-	let result = await getWeather();
-	console.log(result)
-}, milliseconds);
+	await getWeather();
+
+	// runs at every interval set above in checkInterval variable (converted to milliseconds)
+	setInterval(async () => {
+		now = new Date();
+		console.log(now.toDateString(), now.toLocaleTimeString());
+		console.log('Fetching weather forecast...');
+		await getWeather();
+	}, milliseconds);
+}
+
+run();
