@@ -1,139 +1,89 @@
-const axios = require('axios');
-const nodemailer = require('nodemailer');
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('./config.json'));
+const axios = require('axios');
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
+require('dotenv').config();
 
-const logFile = fs.createWriteStream('log.txt', { flags: 'a' });
+const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
 
-const checkInterval = 24; //hours
-const milliseconds = checkInterval * 60 * 60 * 1000;
+(async function main() {
+  const cronTime = '0 20 * * *'; //8:00 PM
 
-const log = (text) => {
-	logFile.write(text + '\n');
-	console.log(text);
-};
+  console.log('Started weather alert service.');
 
-const getWeather = () => {
-	return new Promise(async (resolve, reject) => {
-		const city = 'Spanish Fork';
-		const state = 'UT';
-		const country = 'US';
-		const key = config.apiKey;
-		const url = `https://api.weatherbit.io/v2.0/forecast/hourly?city=${city}&state=${state}&country=${country}&key=${key}&hours=48`;
-		let res = await axios.get(url);
-		let hourlyData = res.data.data;
-	
-		let snowPredicted = false;
-		let snowDepth = 0;
-		let firstDate = '',
-			firstDay = '',
-			lastDay = '',
-			firstTime = '',
-			lastTime = '',
-			firstAmOrPm = '',
-			lastAmOrPm = '';
-	
-		hourlyData.forEach(forecast => {
-			if (forecast.snow > 0) {
-				snowPredicted = true;
-				let depth = forecast.snow_depth / 25.4; // converting millimeters to inches
-				let date = new Date(forecast.timestamp_local);
-				hour = date.getHours();
-				day = date.toDateString();
-				if (hour <= 11) {
-					if (hour === 0) {
-						hour = 12;
-					}
-					amOrPm = 'A.M.';
-				} else {
-					if (hour !== 12) {
-						hour = hour - 12;
-					}
-					amOrPm = 'P.M.';
-				}
-				let time = hour + ':00'
-	
-				if (firstDate === '') {
-					firstDate = date;
-					firstDay = day;
-					firstTime = hour;
-					firstAmOrPm = amOrPm;
-				}
-				if (date < firstDate) {
-					firstDay = day;
-					firstTime = time;
-					firstAmOrPm = amOrPm;
-				}
-				lastDay = day;
-				lastTime = time;
-				lastAmOrPm = amOrPm;
-				snowDepth = depth;
-			}
-		});
+  cron.schedule(cronTime, async () => {
+    console.log('Fetching weather forecast...');
 
-		if (snowPredicted && snowDepth >= 1) {
-			snowDepth = snowDepth.toFixed(2);
-			let message = `Forecast: Snow expected to start around ${firstTime} ${firstAmOrPm} on ${firstDay} and will continue until around ${lastTime} ${lastAmOrPm} on ${lastDay}. Total expected snowfall is ${snowDepth} inches`;
-			
-			log('Snow forecasted. Sending alert to recipients...')
-			let alertStatus = await sendAlert(message);
-			log(alertStatus);
-		} else if (snowPredicted && snowDepth < 1) {
-			log('Less than one inch of snow predicted');
-		} else {
-			log('No snow predicted');
-		}
-		log('---');
-		logFile.write('\n');
-		resolve();
-	})
-};
+    let today = new Date().toDateString();
 
-const sendAlert = (message) => {
-	const emails = config.emails;
-	return new Promise((resolve, reject) => {
-		let transporter = nodemailer.createTransport({
-			host: "smtp-mail.outlook.com",
-			secure: false,
-			port: 587, // default port for insecure
-			auth: {
-			user: "kspayne93@outlook.com",
-			pass: config.password
-			}
-		});
-		
-		let mailOptions = {
-			from: '"Weather Alert" <kspayne93@outlook.com',
-			to: emails,
-			subject: 'Snow Alert',
-			text: message
-		};
+    try {
+      let forecast = await getForecast();
+      let snowDepth = forecast.snow / 25.4; // mm to in
 
-		transporter.sendMail(mailOptions, (error, info) => {
-			if (error) {
-				reject(error);
-			}
-			// log(info);
-			resolve('Message(s) sent successfully.');
-		});
-	})
+      if (snowDepth >= 0) {
+        let msg = `${today} - ${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
+        console.log(msg);
+
+        try {
+          let res = await sendAlert(`\n\n${msg}`);
+          console.log(res);
+        } catch (err) {
+          console.log(`Error sending alert: ${err}`);
+        }
+      } else {
+        msg += `No snow predicted.`;
+        console.log(msg);
+      }
+    } catch (err) {
+      let errMsg = err.response?.data?.error || 'Unknown error';
+      let msg = `${today} - Error retrieving data: ${errMsg}`;
+      console.log(msg);
+    }
+
+    console.log('\n');
+  });
+})();
+
+async function getForecast() {
+  const city = 'Spanish Fork';
+  const state = 'UT';
+  const country = 'US';
+  const url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&state=${state}&country=${country}&key=${API_KEY}&hours=48`;
+
+  let res = await axios.get(url);
+  return res.data.data[0];
 }
 
-const run = async () => {
-	// Runs once on startup
-	log('Started Weather Alert service...');
-	let now = new Date();
-	log(`${now.toDateString()} ${now.toLocaleTimeString()}`); // Human readable date & time
-	log('Fetching weather forecast...');
-	await getWeather();
+function sendAlert(message) {
+  const { emails } = config;
 
-	// runs at every interval set above in checkInterval variable (converted to milliseconds)
-	setInterval(async () => {
-		now = new Date();
-		log(`${now.toDateString()} ${now.toLocaleTimeString()}`);
-		log('Fetching weather forecast...');
-		await getWeather();
-	}, milliseconds);
+  console.log('Sending alert(s)...');
+  return new Promise((resolve, reject) => {
+    let transporter = nodemailer.createTransport({
+      host: 'smtp-mail.outlook.com',
+      secure: false,
+      port: 587, // default port for insecure
+      auth: {
+        user: OUTLOOK_EMAIL,
+        pass: OUTLOOK_PW,
+      },
+    });
+
+    let mailOptions = {
+      from: '"goozybot" <goozybot@outlook.com',
+      to: emails,
+      subject: 'Snow Alert',
+      text: message,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        let errMsg = err.response || 'Unknown error';
+        reject(`Error sending email alert(s) - ${errMsg}`);
+      } else {
+        resolve('Alert(s) sent successfully.');
+      }
+    });
+  });
 }
-
-run();
