@@ -32,8 +32,7 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
           console.log(`Error sending alert: ${err}`);
         }
       } else {
-        msg += `No snow predicted.`;
-        console.log(msg);
+        console.log(`No snow predicted.`);
       }
     } catch (err) {
       let errMsg = err.response?.data?.error || 'Unknown error';
