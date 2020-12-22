@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const config = JSON.parse(fs.readFileSync('./config.json'));
 const axios = require('axios');
