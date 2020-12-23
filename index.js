@@ -23,8 +23,8 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
       let forecast = await getForecast();
       let snowDepth = forecast.snow / 25.4; // mm to in
 
-      if (snowDepth >= 0) {
-        let msg = `${today} - ${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
+      if (snowDepth >= 1) {
+        let msg = `${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
         console.log(msg);
 
         try {
