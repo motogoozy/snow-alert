@@ -25,7 +25,7 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
 
       if (snowDepth >= 1) {
         let msg = `${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
-        console.log(msg);
+        console.log(today + ' - ' + msg);
 
         try {
           let res = await sendAlert(`\n\n${msg}`);
