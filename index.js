@@ -28,7 +28,7 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
         console.log(`${today} - ${msg}`);
 
         try {
-          let res = await sendAlert(`\n\n${msg}`);
+          let res = await sendAlert(`\n\n${msg}\n - goozybot`);
           console.log(res);
         } catch (err) {
           console.log(`Error sending alert: ${err}`);
