@@ -11,25 +11,24 @@ require('dotenv').config({ path: path.join(__dirname, '.ENV') });
 const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
 
 (async function main() {
-  const cronTime = '0 20 * * *'; //8:00 PM
-
   console.log('Started weather alert service.');
 
-  cron.schedule(cronTime, async () => {
-    console.log('Fetching weather forecast...');
+  const cronTime = '0 20 * * *'; //8:00 PM
 
-    let today = new Date().toDateString();
+  cron.schedule(cronTime, async () => {
+    const today = new Date().toDateString();
+    console.log(today);
 
     try {
-      let forecast = await getForecast();
-      let snowDepth = forecast.snow / 25.4; // mm to in
+      const forecast = await getForecast();
+      const snowDepth = forecast.snow / 25.4; // mm to in
 
-      if (snowDepth >= 1) {
-        let msg = `${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
-        console.log(`${today} - ${msg}`);
+      if (snowDepth >= 0) {
+        const msg = `${snowDepth.toFixed(2)} in. of snowfall expected tomorrow.`;
+        console.log(msg);
 
         try {
-          let res = await sendAlert(`\n\n${msg}\n - goozybot`);
+          const res = await sendAlert(`\n\n${msg}\n\n - goozybot`);
           console.log(res);
         } catch (err) {
           console.log(`Error sending alert: ${err}`);
@@ -38,9 +37,8 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
         console.log(`No snow predicted.`);
       }
     } catch (err) {
-      let errMsg = err.response.data.error || 'Unknown error';
-      let msg = `${today} - Error retrieving data: ${errMsg}`;
-      console.log(msg);
+      const errMsg = err.response.data.error || 'Unknown error';
+      console.log(`Error retrieving data: ${errMsg}`);
     }
 
     console.log('\n');
@@ -53,7 +51,7 @@ async function getForecast() {
   const country = 'US';
   const url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${city}&state=${state}&country=${country}&key=${API_KEY}&hours=48`;
 
-  let res = await axios.get(url);
+  const res = await axios.get(url);
   return res.data.data[0];
 }
 
@@ -62,7 +60,7 @@ function sendAlert(message) {
 
   console.log('Sending alert(s)...');
   return new Promise((resolve, reject) => {
-    let transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       host: 'smtp-mail.outlook.com',
       secure: false,
       port: 587, // default port for insecure
@@ -72,7 +70,7 @@ function sendAlert(message) {
       },
     });
 
-    let mailOptions = {
+    const mailOptions = {
       from: '"goozybot" <goozybot@outlook.com',
       to: emails,
       subject: 'Snow Alert',
@@ -81,7 +79,7 @@ function sendAlert(message) {
 
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        let errMsg = err.response || 'Unknown error';
+        const errMsg = err.response || 'Unknown error';
         reject(`Error sending email alert(s) - ${errMsg}`);
       } else {
         resolve('Alert(s) sent successfully.');
