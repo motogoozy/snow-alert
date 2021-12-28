@@ -33,6 +33,8 @@ const { OUTLOOK_EMAIL, OUTLOOK_PW, API_KEY } = process.env;
         } catch (err) {
           console.log(`Error sending alert: ${err}`);
         }
+      } else if (snowDepth < 1 && snowDepth > 0) {
+        console.log('Less than 1 inch of snow predicted');
       } else {
         console.log(`No snow predicted.`);
       }
