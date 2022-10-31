@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const config = JSON.parse(fs.readFileSync('./config.json'));
+const config = require('./config.json');
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
